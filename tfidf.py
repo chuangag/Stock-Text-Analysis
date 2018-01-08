@@ -5,20 +5,21 @@ import math
 
 ARTC = 300
 
-ocwlis = []
-
-tfm = []
-idfm = []
-
-ofd = {}
 
 
-def load():
-	fin = io.open('split_True.json', encoding='utf-8')
-	ffreq = io.open('frequency.txt', encoding='utf-8')
+
+def load(company):
+	ocwlis = []
+
+	tfm = []
+	idfm = []
+
+	ofd = {}
+	fin = io.open('rawdata/'+company+'split_True.json', encoding='utf-8')
+	ffreq = io.open('rawdata/frequency_'+company+'.txt', encoding='utf-8')
 	artj = json.load(fin)
-	fout = io.open('tfidf.txt', 'w', encoding='utf-8')
-	fw = io.open('words.txt', 'w', encoding='utf-8')
+	fout = io.open('rawdata/tfidf_'+company+'.txt', 'w', encoding='utf-8')
+	fw = io.open('rawdata/words_'+company+'.txt', 'w', encoding='utf-8')
 
 	reg = re.compile(r'\'(.*)\'')
 	num_reg = re.compile(r'^[\d-]+$')
@@ -62,6 +63,7 @@ def load():
 		idfd[k] = math.log(num_art / idfd[k])
 
 	# combine
+	print(len(tfm))
 	for d in tfm:
 		for k in d.keys():
 			d[k] = d[k] * idfd[k]
@@ -72,8 +74,9 @@ def load():
 	#print(idfd)
 	#print(tfm[0])
 	fw.write(str(cwlis))
+	fout.close()
+	fw.close()
 
-
-
-
-load()
+companies=['fuxingyiyao','kedaxunfei','sanyizhonggong','yonghuichaoshi']
+for company in companies:
+	load(company)

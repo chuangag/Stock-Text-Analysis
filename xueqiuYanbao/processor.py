@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import os
 
 outputs=[] # list of json(dictionary)
-companies=['sanyizhonggong','fuxingyiyao','yonghuichaoshi']
+companies=['yonghuichaoshi']
 for company in companies:
     #print(company)
     #print(len([name for name in os.listdir(company)]))
@@ -30,4 +30,6 @@ for company in companies:
     print(len(outputs))
     with open('yanbao_'+company+'.json','w') as f:
         json.dump(outputs,f,ensure_ascii=False)
+        f.flush()
+        f.close()
 

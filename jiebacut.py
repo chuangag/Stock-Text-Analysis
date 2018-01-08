@@ -2,10 +2,7 @@ import jieba
 import json
 import re
 import io
-
-elems = []
 stop_words = []
-frequency = {}
 
 def read_stop_words():
 	# text = io.open('stop_words.txt', 'r', encoding='utf-8')
@@ -23,12 +20,16 @@ def require_check_stop_words():
 		return False
 
 
-def load():
+def load(company):
+    
+	elems = []
+	
+	frequency = {}
 	check_stop_words = require_check_stop_words()
-	f = io.open('xq_yanbao.json', encoding='utf-8')
+	f = io.open('rawdata/yanbao_'+company+'_1617.json', encoding='utf-8')
 	content = json.load(f)
-	file = io.open('split_%s.json' % (check_stop_words), 'w', encoding='utf-8')
-	ffreq = io.open('frequency.txt', 'w', encoding='utf-8')
+	file = io.open('rawdata/'+company+'split_%s.json' % (check_stop_words), 'w', encoding='utf-8')
+	ffreq = io.open('rawdata/frequency_'+company+'.txt', 'w', encoding='utf-8')
 
 	if check_stop_words:
 		read_stop_words()
@@ -37,9 +38,9 @@ def load():
 	note_regex = re.compile(r'[\s+\.\!\/_,$%^*(+\"\')]+|[+——()?：●【】“”！，。？、~@#￥%……&*（）]+')
 
 	for sj in content:
-		# to select paper in 2017
-		if len(sj['time']) >= 15:
-			continue
+		# NOT to select paper in 2017
+		#if len(sj['time']) >= 15:
+			#continue
 		m_title = company_regex.match(sj['title'])
 		elem = {}
 		elem['company'] = m_title.group(1)
@@ -82,5 +83,6 @@ def load():
 
 	
 	ffreq.close()
-
-load()
+companies=['kedaxunfei','fuxingyiyao','sanyizhonggong','yonghuichaoshi']
+for company in companies:
+	load(company)
