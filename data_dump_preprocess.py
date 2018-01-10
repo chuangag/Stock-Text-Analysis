@@ -99,7 +99,7 @@ def dump_data(filename,dates,vectors,dates_trade,asrs,profits,interval=30):
 
 
 companies=['kedaxunfei','fuxingyiyao','sanyizhonggong','yonghuichaoshi']
-
+#companies=['kedaxunfei']
 for company in companies:
     print(company)
     dates,vectors,dates_trade,asrs,profits=pre_process_asr(yanbao='rawdata/yanbao_'+company+'_1617.json',\
@@ -108,14 +108,18 @@ for company in companies:
     for interval in intervals:
         filename='datasets/datas_'+company+'_'+str(interval)+'d.json'
         asrs_plt=dump_data(filename,dates,vectors,dates_trade,asrs,profits,interval=interval)
-        """
-        plt.hist(asrs_plt)
+        colors=['red','tan']
+        labels = ['ASR', 'Profit']
+        plt.hist(asrs_plt,normed=1, histtype='bar', color=colors, label=labels)
         plt.xlabel('asr sum over '+str(interval)+' days')
         plt.ylabel('number of data')
-        plt.title('Total number of data:'+str(len(asrs_plt)))
+        plt.title('Total number of data:'+str(len(asrs_plt[0])))
         plt.axis([-0.5, 0.5,0,30])
-        plt.savefig('figs/Distribution_over_'+str(interval)+'days')
+        plt.legend()
+        plt.savefig('figs/Distribution_'+company+'_'+str(interval)+'days')
+        
+        #plt.show()
         plt.close()
-        """
+        
     
     

@@ -36,3 +36,9 @@
 ## data_dump_preprocess.py
 Preprocess, pairup and dump data into json files
 
+# 更新紀錄(1/10)
+1. 雖然ASR和一般收益率有細微差距（在figs中可以看到分佈），但是如果根據幅度劃分為五類的話，兩者的分佈是一樣的
+2. 因為這幾家公司的種類不同，所以沒有共用tfidf的，而是針對每家公司都從頭進行操作（統計高頻詞->訓練模型）
+3. 這次的訓練數據都採用了16，17年的研報，總數量也可以在figs中的分佈圖看到
+4. 訓練結果可以在figs中看到，成果仍然會overfit
+
