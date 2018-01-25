@@ -1,3 +1,4 @@
 crawler/
 *.xlsx
 test.py
+__pycache__
