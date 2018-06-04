@@ -8,6 +8,7 @@ import datetime
 from datetime import timedelta
 from collections import Counter
 import numpy as np
+from sklearn import preprocessing
 
 ### ---Global Variables--- ###
 cat_threshold=[-0.075,-0.025,0.025,0.075]
@@ -16,17 +17,97 @@ class_labels=list(range(num_class))
 class_count=Counter()
 companies=['SH600000', 'SH600016', 'SH600019', 'SH600028', 'SH600029', 'SH600030', 'SH600036', 'SH600048', 'SH600050', 'SH600104', 'SH600111', 'SH600309', 'SH600340', 'SH600518', 'SH600519', 'SH600547', 'SH600606', 'SH600837', 'SH600887', 'SH600958', 'SH600999', 'SH601006', 'SH601088', 'SH601166', 'SH601169', 'SH601186', 'SH601211', 'SH601288','SH601318', 'SH601328', 'SH601336', 'SH601390', 'SH601398', 'SH601601', 'SH601628', 'SH601668', 'SH601669', 'SH601688', 'SH601766', 'SH601800', 'SH601818', 'SH601857', 'SH601985', 'SH601988', 'SH601989', 'SH603993']
 
-def isNumber(str):
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+class DatasetGenerator:
     """
-    :str: input string
-    :return: true if str is a number, false otherwise, notice that number including "%" and "."
+    Generate a data set from the processed raw data, result in a list of data tuples(list of numbers actually) and save to file.
+    The last element of each tuple will be the target class for that datum.
+    Result in two files: dataset_X_cont, dataset_X_1hot and dataset_Y where X_cont is the data tuples with 
+    continuous features, X_1hot is data tuples with one-hot features and Y is ther corresponding labels
     """
-    isNumber=True
-    for char in str:
-        if ord(char)>57 and ord(char)<48 and char!="%" and char !=".":
-            isNumber=False
-            break
-    return isNumber
+    def __init__(self,processed_data_folder,output_folder,stockid_list):
+        self.stockid_list=stockid_list
+        self.processed_data_folder=processed_data_folder
+        self.output_folder=output_folder
+        self.rawdatas=[]
+        for stockid in stockid_list:
+            with open(self.processed_data_folder+stockid+'.json','r') as f:
+                datas=json.load(f)
+                self.rawdatas.extend(datas)
+        self.rawdatas_cont=[]
+        self.normalized_array=[]
+        self.rawdatas_1hot=[]
+        self.Ys=[]
+    
+    def selectNumericFeatures(self):
+        numeric_features=set()
+        onehot_features=set()
+        assert(len(self.rawdatas)>0)
+        for key,value in list(self.rawdatas[0].items()):
+            if (value==1 or value==0):
+                onehot_features.add(key)
+            elif is_number(str(value)):
+                numeric_features.add(key)
+        badkeys=['predict_target_value','predict_target_class','isGood']
+        for key in badkeys:
+            onehot_features.discard(key)
+            numeric_features.discard(key)
+        print('Numeric features:',numeric_features)
+        print('One hot features:',onehot_features)
+        print('total:',len(numeric_features)+len(onehot_features),'features')
+        self.rawdatas_cont=[{k:data[k] for k in numeric_features} for data in self.rawdatas]
+        self.rawdatas_1hot=[{k:data[k] for k in onehot_features} for data in self.rawdatas]
+        self.Ys=[{'predict_target_class':data['predict_target_class']} for data in self.rawdatas]
+    
+    def normalization(self):
+        rawdatas_nokey=[]
+        for data in self.rawdatas_cont:
+            rawdatas_nokey.append([value for key,value in list(data.items())])
+        x=np.array(rawdatas_nokey)
+        self.normalized_array = preprocessing.scale(x)
+
+    def writeXcontCSV(self):
+        with open(self.output_folder+'X_cont.csv', 'w') as f:
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(list(self.rawdatas_1hot[0].keys()))
+            csvwriter.writerows(self.normalized_array)
+
+    def writeX1hotCSV(self):
+        assert(len(self.rawdatas_1hot)>0)
+        keys = self.rawdatas_1hot[0].keys()
+        with open(self.output_folder+'X_1hot.csv', 'w') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(self.rawdatas_1hot)   
+
+    def writeY(self):
+        assert(len(self.Ys)>0)
+        keys = self.Ys[0].keys()
+        with open(self.output_folder+'Y.csv', 'w') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(self.Ys)    
+
+    def writeCSV(self):
+        print(f'Total {len(self.rawdatas)} data tuples')
+        self.writeX1hotCSV()
+        self.writeXcontCSV()
+        self.writeY()
+        print('Generated')
+
+    def run(self):
+        self.selectNumericFeatures()
+        self.normalization()
+        self.writeCSV()
+        
+        
 
 class AllDataProcessor:
     """
@@ -137,7 +218,7 @@ class AllDataProcessor:
         
         return title_pr,text_pr
 
-    def polishKeyWords(self,freq_threshold=0.05,feature_proportion=0.1):
+    def polishKeyWords(self,freq_threshold=0.025,feature_proportion=0.05):
         """
         - 對每個word進行出現頻率統計，若在少於5%的文章中出現則刪除
 	    - 使用WCP(within class popularity)進行篩選
@@ -425,12 +506,17 @@ class RawDataProcessor:
 
 if __name__=="__main__":
     stock_list=companies
+    """
     processor=AllDataProcessor('./xueqiuYanbao/shangzheng50_combined/yanbao_',\
                                 './xueqiuYanbao/shangzheng50_processed/',\
                                 './shangzheng50log/output/',\
                                 stock_list)
     processor.run()
-    
+    """
+    dataGen=DatasetGenerator('./xueqiuYanbao/shangzheng50_processed/',\
+                                './dataset_shangzheng50/',\
+                                stock_list)
+    dataGen.run()
 
 
     
