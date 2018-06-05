@@ -25,6 +25,13 @@ def is_number(s):
     except ValueError:
         return False
 
+def is_int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 class DatasetGenerator:
     """
     Generate a data set from the processed raw data, result in a list of data tuples(list of numbers actually) and save to file.
@@ -51,7 +58,7 @@ class DatasetGenerator:
         onehot_features=set()
         assert(len(self.rawdatas)>0)
         for key,value in list(self.rawdatas[0].items()):
-            if (value==1 or value==0):
+            if is_int(str(value)):
                 onehot_features.add(key)
             elif is_number(str(value)):
                 numeric_features.add(key)
