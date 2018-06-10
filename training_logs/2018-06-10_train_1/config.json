@@ -1,0 +1,1 @@
+{"num_epochs": 300, "batch_size": 256, "l2_reg": 0.1, "val_split": 0.3, "optimizer": "adam", "loss_weights": {"main_output": 1.0, "weak_output": 0.8}, "encoder_layers": [128, 128], "main_layers": [32, 32, 32], "lr_reduce_factor": 0.8, "verbose": 0}

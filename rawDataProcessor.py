@@ -50,27 +50,32 @@ class DatasetGenerator:
                 self.rawdatas.extend(datas)
         self.rawdatas_cont=[]
         self.normalized_array=[]
-        self.rawdatas_1hot=[]
+        self.rawdatas_disc=[]
         self.Ys=[]
     
     def selectNumericFeatures(self):
         numeric_features=set()
-        onehot_features=set()
+        discrete_features=set()
         assert(len(self.rawdatas)>0)
         for key,value in list(self.rawdatas[0].items()):
             if is_int(str(value)):
-                onehot_features.add(key)
+                discrete_features.add(key)
             elif is_number(str(value)):
                 numeric_features.add(key)
         badkeys=['predict_target_value','predict_target_class','isGood']
         for key in badkeys:
-            onehot_features.discard(key)
+            discrete_features.discard(key)
             numeric_features.discard(key)
+
+        # TO CHANGE IN FUTURE
+        discrete_features.discard('volume')
+        numeric_features.add('volume')
+
         print('Numeric features:',numeric_features)
-        print('One hot features:',onehot_features)
-        print('total:',len(numeric_features)+len(onehot_features),'features')
+        print('Discrete features:',discrete_features)
+        print('total:',len(numeric_features)+len(discrete_features),'features')
         self.rawdatas_cont=[{k:data[k] for k in numeric_features} for data in self.rawdatas]
-        self.rawdatas_1hot=[{k:data[k] for k in onehot_features} for data in self.rawdatas]
+        self.rawdatas_disc=[{k:data[k] for k in discrete_features} for data in self.rawdatas]
         self.Ys=[{'predict_target_class':data['predict_target_class']} for data in self.rawdatas]
     
     def normalization(self):
@@ -83,16 +88,16 @@ class DatasetGenerator:
     def writeXcontCSV(self):
         with open(self.output_folder+'X_cont.csv', 'w') as f:
             csvwriter = csv.writer(f)
-            csvwriter.writerow(list(self.rawdatas_1hot[0].keys()))
+            csvwriter.writerow(list(self.rawdatas_cont[0].keys()))
             csvwriter.writerows(self.normalized_array)
 
     def writeX1hotCSV(self):
-        assert(len(self.rawdatas_1hot)>0)
-        keys = self.rawdatas_1hot[0].keys()
-        with open(self.output_folder+'X_1hot.csv', 'w') as output_file:
+        assert(len(self.rawdatas_disc)>0)
+        keys = self.rawdatas_disc[0].keys()
+        with open(self.output_folder+'X_disc.csv', 'w') as output_file:
             dict_writer = csv.DictWriter(output_file, keys)
             dict_writer.writeheader()
-            dict_writer.writerows(self.rawdatas_1hot)   
+            dict_writer.writerows(self.rawdatas_disc)   
 
     def writeY(self):
         assert(len(self.Ys)>0)
