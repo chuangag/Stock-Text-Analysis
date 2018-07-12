@@ -34,7 +34,7 @@ for batch_size in [32,64,128,256]:
                 for encoder_layers in [[64],[64,64],[64,64,64],[128],[128,128]]:
                     for main_layers in [[64,64],[64,64,64],[32,32,32,32],[128,64,32],[32,32],[32,32,32]]:
                         for lr_reduce_factor in [0.1,0.5,0.8]:
-                            for num_epochs in [100,200,300]:
+                            for num_epochs in [150]:
                                 config={'num_epochs':num_epochs,
                                         'batch_size':batch_size,
                                         'l2_reg':l2_reg,
@@ -47,7 +47,7 @@ for batch_size in [32,64,128,256]:
                                         'verbose':0
                                         }
                                 configs.append(config)
-configs=[config]
+#configs=[config]
 for idx,config in enumerate(configs):
     today=date.today().isoformat()
     directory=f'./training_logs/{today}_train_{str(idx+1)}'
@@ -82,6 +82,6 @@ for idx,config in enumerate(configs):
             callbacks=[tfboard,checkpointer,reducelr]
             )
 
-    plt.plot(range(num_epochs),hist.history['val_main_output_categorical_accuracy'],range(num_epochs),hist.history['main_output_categorical_accuracy'])
+    plt.plot(range(config['num_epochs']),hist.history['val_main_output_categorical_accuracy'],range(config['num_epochs']),hist.history['main_output_categorical_accuracy'])
     plt.savefig(f'{directory}/training.png')
     plt.close()
